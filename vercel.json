@@ -50,6 +50,18 @@
         {
             "src": "/(.*)",
             "dest": "api/server.php"
+        },
+        {
+            "src": "/site.webmanifest",
+            "dest": "/public/site.webmanifest"
+        },
+        {
+            "src": "/android-chrome-(.*)",
+            "dest": "/public/android-chrome-$1"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "dest": "/public/apple-touch-icon.png"
         }
     ]
 }
