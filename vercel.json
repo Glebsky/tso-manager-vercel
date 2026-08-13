@@ -1,0 +1,56 @@
+{
+    "version": 2,
+    "framework": null,
+    "buildCommand": "npm run build",
+    "outputDirectory": "public",
+    "functions": {
+        "api/server.php": {
+            "runtime": "vercel-php@0.9.0",
+            "maxDuration": 30
+        }
+    },
+    "env": {
+        "APP_NAME": "TSO Public Market",
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "APP_KEY": "base64:BU8JL1f6vmjiKr5fZJ8Raf3R3PoqZXigs+/gqVis5qM=",
+        "APP_LOCALE": "en",
+        "APP_FALLBACK_LOCALE": "en",
+        "APP_TIMEZONE": "UTC",
+        "MARKET_DEFAULT_SERVER_ID": "ru",
+        "MARKET_CACHE_STRATEGY": "bulk",
+        "DB_CONNECTION": "pgsql",
+        "DB_HOST": "aws-0-eu-west-1.pooler.supabase.com",
+        "DB_PORT": "5432",
+        "DB_DATABASE": "postgres",
+        "DB_USERNAME": "postgres.sibqukjvhwlzxgzhfxil",
+        "DB_PASSWORD": "wonettehartin148_tx",
+        "CACHE_STORE": "array",
+        "CACHE_DRIVER": "array",
+        "SESSION_DRIVER": "cookie",
+        "QUEUE_CONNECTION": "sync",
+        "LOG_CHANNEL": "stderr",
+        "LOG_LEVEL": "error",
+        "APP_STORAGE": "/tmp/storage",
+        "LARAVEL_STORAGE_PATH": "/tmp/storage",
+        "APP_CONFIG_CACHE": "/tmp/storage/config.php",
+        "APP_EVENTS_CACHE": "/tmp/storage/events.php",
+        "APP_PACKAGES_CACHE": "/tmp/storage/packages.php",
+        "APP_ROUTES_CACHE": "/tmp/storage/routes.php",
+        "APP_SERVICES_CACHE": "/tmp/storage/services.php",
+        "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
+    },
+    "routes": [
+        {
+            "src": "/(.*\\.php)",
+            "dest": "/api/server.php"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/api/server.php"
+        }
+    ]
+}
