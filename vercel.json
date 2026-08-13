@@ -29,7 +29,7 @@
     "routes": [
         {
             "src": "/site.webmanifest",
-            "dest": "/public/site.webmanifest"
+            "dest": "/site.webmanifest"
         },
         {
             "src": "/android-chrome-(.*)",
