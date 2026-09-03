@@ -158,7 +158,7 @@
                             <select v-model="selectedItem" @change="onItemChange" :aria-label="t('market.selling_item')" class="glass-select w-full transition-all duration-300">
                                 <option value="" class="bg-dark-900">{{ t('market.select_selling') }}</option>
                                 <option v-for="good in filteredGoods" :key="good.item_id" :value="good.item_id" class="bg-dark-900">
-                                    {{ getItemName(good.item_name, good.item_id) }} ({{ good.item_id }})
+                                    {{ getItemName(good.item_name, good.item_id) }}
                                 </option>
                             </select>
                             <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -176,7 +176,7 @@
                             <select v-model="selectedTarget" :disabled="!selectedItem" @change="fetchAnalytics" :aria-label="t('market.target_item')" class="glass-select w-full disabled:opacity-40 transition-all duration-300">
                                 <option value="" class="bg-dark-900">{{ t('market.select_target') }}</option>
                                 <option v-for="target in filteredTargets" :key="target.target_item_id" :value="target.target_item_id" class="bg-dark-900">
-                                    {{ getItemName(target.target_item_name, target.target_item_id) }} ({{ target.target_item_id }})
+                                    {{ getItemName(target.target_item_name, target.target_item_id) }}
                                 </option>
                             </select>
                             <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -1020,13 +1020,13 @@ const router = useRouter();
         // Dynamic translated names
         const selectedItemName = computed(() => {
             const item = allGoods.value.find(g => g.item_id === selectedItem.value);
-            const name = item ? item.item_name : selectedItem.value;
+            const name = item ? item.item_name : '';
             return getItemName(name, selectedItem.value);
         });
 
         const selectedTargetName = computed(() => {
             const item = targets.value.find(t => t.target_item_id === selectedTarget.value);
-            const name = item ? item.target_item_name : selectedTarget.value;
+            const name = item ? item.target_item_name : '';
             return getItemName(name, selectedTarget.value);
         });
 
