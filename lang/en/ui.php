@@ -279,6 +279,8 @@ return [
     'market.popular_items' => 'Most Popular Items',
     'market.price' => 'Price',
     'market.public_portal' => 'Public Portal',
+    'market.combat_simulator' => 'Combat Simulator',
+    'market.combat_simulator_tooltip' => 'Advanced Combat Simulator',
     'market.public_subtitle' => 'Real-time trade prices, demand history, popular items, and arbitrage opportunities',
     'market.range_1y' => '1y',
     'market.range_24h' => '24h',

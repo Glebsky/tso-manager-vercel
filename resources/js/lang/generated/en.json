@@ -6526,6 +6526,8 @@
         "market.col_server_locale": "Server / Locale",
         "market.col_verification": "Verification",
         "market.collapse": "Collapse",
+        "market.combat_simulator": "Combat Simulator",
+        "market.combat_simulator_tooltip": "Advanced Combat Simulator",
         "market.confirm_delete_server": "Delete server connection {name}?",
         "market.connection_status": "Connection Status",
         "market.console_message": "Humanity is strong through altruism and unity. Every life deserves love and peace, not war and pain. Stand with Ukraine 🇺🇦",

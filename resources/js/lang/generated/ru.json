@@ -6526,6 +6526,8 @@
         "market.col_server_locale": "Сервер / Локаль",
         "market.col_verification": "Проверка",
         "market.collapse": "Свернуть",
+        "market.combat_simulator": "Боевой симулятор",
+        "market.combat_simulator_tooltip": "Продвинутый боевой симулятор",
         "market.confirm_delete_server": "Удалить подключение сервера {name}?",
         "market.connection_status": "Статус подключения",
         "market.console_message": "Человечество сильно альтруизмом и единением. Каждая жизнь достойна любви и мира, а не войны и боли. Stand with Ukraine 🇺🇦",

@@ -389,6 +389,8 @@ return [
     'market.popular_items' => 'Найпопулярніші товари',
     'market.price' => 'Ціна',
     'market.public_portal' => 'Публічний портал',
+    'market.combat_simulator' => 'Бойовий симулятор',
+    'market.combat_simulator_tooltip' => 'Просунутий бойовий симулятор',
     'market.public_subtitle' => 'Торгові ціни, історія попиту, популярні товари та арбітражні можливості в реальному часі',
     'market.range_1y' => '1р',
     'market.range_24h' => '24г',

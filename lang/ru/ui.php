@@ -279,6 +279,8 @@ return [
     'market.popular_items' => 'Самые популярные товары',
     'market.price' => 'Цена',
     'market.public_portal' => 'Публичный портал',
+    'market.combat_simulator' => 'Боевой симулятор',
+    'market.combat_simulator_tooltip' => 'Продвинутый боевой симулятор',
     'market.public_subtitle' => 'Торговые цены, история спроса, популярные товары и арбитражные возможности в реальном времени',
     'market.range_1y' => '1г',
     'market.range_24h' => '24ч',
