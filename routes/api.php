@@ -7,6 +7,7 @@ use App\Http\Controllers\Market\ArbitrageController;
 use App\Http\Controllers\Market\BulkController;
 use App\Http\Controllers\Market\CatalogController;
 use App\Http\Controllers\Market\PopularController;
+use App\Http\Controllers\Market\PublicMarketSettingsController;
 use App\Http\Controllers\Market\PublicServerController;
 use App\Http\Controllers\Market\VersionController;
 use App\Http\Middleware\HttpCacheHeaders;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('public/market')->group(function (): void {
     Route::get('/version', VersionController::class);
+    Route::get('/settings', PublicMarketSettingsController::class);
 
     Route::middleware(HttpCacheHeaders::class)->group(function (): void {
         Route::get('/servers', PublicServerController::class);
