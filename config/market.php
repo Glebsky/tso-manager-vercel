@@ -47,7 +47,7 @@ return [
     | Default Cache & Fetch Strategy ('bulk' | 'individual')
     |--------------------------------------------------------------------------
     */
-    'cache_strategy' => env('MARKET_CACHE_STRATEGY', 'granular'),
+    'cache_strategy' => env('MARKET_CACHE_STRATEGY', 'bulk'),
 
     /*
     |--------------------------------------------------------------------------

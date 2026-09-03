@@ -15,13 +15,13 @@ class MarketCacheService
     /**
      * Pseudo-server id used for cross-server (aggregate) cached data.
      */
-    public const GLOBAL_SERVER = 'global';
+    public const string GLOBAL_SERVER = 'global';
 
     /**
      * Micro-TTL (seconds) for the cached copy of the DB-stored data version.
-     * Keeps per-request version lookups cheap without long staleness windows.
+     * Invalidated immediately on sync via Cache::forget.
      */
-    private const VERSION_MICRO_TTL_SECONDS = 5;
+    private const int VERSION_MICRO_TTL_SECONDS = 300;
 
     /**
      * Time bucket size (seconds) mixed into ETags. Responses that depend on
@@ -29,26 +29,43 @@ class MarketCacheService
      * never be served as "304 Not Modified" longer than one bucket, even if
      * the data version has not changed between syncs.
      */
-    private const ETAG_TIME_BUCKET_SECONDS = 60;
+    private const int ETAG_TIME_BUCKET_SECONDS = 60;
+
+    /**
+     * @var array<string, string>
+     */
+    private static array $resolvedServerIds = [];
 
     /**
      * Resolve target server_id from string input or fallback to first available.
      */
     public function resolveServerId(?string $serverId = null): string
     {
+        $cacheKey = $serverId ?? '__default__';
+        if (isset(self::$resolvedServerIds[$cacheKey])) {
+            return self::$resolvedServerIds[$cacheKey];
+        }
+
         if (! empty($serverId)) {
             $connectionServerId = MarketServerConnection::where('server_id', $serverId)
-                ->orWhere('server_id', 'LIKE', "{$serverId}\\_%")
                 ->value('server_id');
 
             if ($connectionServerId) {
-                return $connectionServerId;
+                return self::$resolvedServerIds[$cacheKey] = $connectionServerId;
             }
 
-            return $serverId;
+            // Fallback for short region code if exact connection not found (e.g. 'ru' -> 'ru_tandriya')
+            $fallbackServerId = MarketServerConnection::where('server_id', 'LIKE', "{$serverId}\\_%")
+                ->value('server_id');
+
+            if ($fallbackServerId) {
+                return self::$resolvedServerIds[$cacheKey] = $fallbackServerId;
+            }
+
+            return self::$resolvedServerIds[$cacheKey] = $serverId;
         }
 
-        return (string) (MarketServerConnection::whereNotNull('account_id')->value('server_id')
+        return self::$resolvedServerIds[$cacheKey] = (string) (MarketServerConnection::whereNotNull('account_id')->value('server_id')
             ?? MarketServerConnection::value('server_id')
             ?? 'ru');
     }
@@ -75,12 +92,7 @@ class MarketCacheService
                     return (int) MarketServerConnection::sum('data_version');
                 }
 
-                $region = explode('_', $serverId)[0];
-                $version = MarketServerConnection::where(static function ($q) use ($serverId, $region): void {
-                    $q->where('server_id', $serverId)
-                        ->orWhere('server_id', $region)
-                        ->orWhere('server_id', 'LIKE', "{$region}\\_%");
-                })->value('data_version');
+                $version = MarketServerConnection::where('server_id', $serverId)->value('data_version');
 
                 if ($version !== null) {
                     return (int) $version;
@@ -93,14 +105,57 @@ class MarketCacheService
         );
     }
 
+    public function invalidateVersionCache(string $serverId): void
+    {
+        Cache::forget($this->versionMicroCacheKey($serverId));
+        Cache::forget($this->versionMicroCacheKey(self::GLOBAL_SERVER));
+    }
+
+    /**
+     * Increment the data version of a server after a successful sync or a
+     * data mutation. Old cache entries become unreachable (the version is
+     * part of every cache key) and simply expire by their TTL, so no key
+     * registry bookkeeping is required.
+     *
+     * IMPORTANT: call this only after the corresponding DB transaction has
+     * committed, otherwise readers may cache pre-commit data under the new
+     * version.
+     */
+    public function bumpDataVersion(string $serverId): int
+    {
+        if ($serverId !== self::GLOBAL_SERVER) {
+            $updated = MarketServerConnection::where('server_id', $serverId)->increment('data_version');
+
+            if ($updated === 0) {
+                $key = $this->fallbackVersionSettingKey($serverId);
+                Setting::set($key, (string) ((int) Setting::get($key, 0) + 1));
+            }
+        }
+
+        // Drop the micro-cached copies so the new version is visible to the
+        // very next request on this machine.
+        Cache::forget($this->versionMicroCacheKey($serverId));
+        Cache::forget($this->versionMicroCacheKey(self::GLOBAL_SERVER));
+
+        return $this->dataVersion($serverId);
+    }
+
     /**
      * Remember cached data per server and endpoint (L3 application cache).
+     *
+     * @template TCacheValue
+     *
+     * @param  array<string, mixed>  $params
+     * @param  Closure(): TCacheValue  $callback
+     * @return TCacheValue
+     *
+     * @throws \JsonException
      */
     public function remember(string $serverId, string $endpoint, array $params, int $ttlSeconds, Closure $callback): mixed
     {
         $version = $this->dataVersion($serverId);
-        $locale = (string) app()->getLocale();
-        $paramsHash = md5((string) json_encode($this->canonicalizeParams($params)));
+        $locale = app()->getLocale();
+        $paramsHash = md5((string) json_encode($this->canonicalizeParams($params), JSON_THROW_ON_ERROR));
         $cacheKey = "market:v{$version}:{$serverId}:{$locale}:{$endpoint}:{$paramsHash}";
 
         return Cache::remember($cacheKey, $ttlSeconds, $callback);
@@ -110,12 +165,16 @@ class MarketCacheService
      * Generate an ETag based on server, data version, locale, params and a
      * coarse time bucket. The bucket guarantees that time-dependent
      * responses are revalidated at least once per bucket even between syncs.
+     *
+     * @param  array<string, mixed>  $params
+     *
+     * @throws \JsonException
      */
     public function generateETag(string $serverId, string $endpoint, array $params): string
     {
         $version = $this->dataVersion($serverId);
-        $locale = (string) app()->getLocale();
-        $paramsHash = md5((string) json_encode($this->canonicalizeParams($params)));
+        $locale = app()->getLocale();
+        $paramsHash = md5((string) json_encode($this->canonicalizeParams($params), JSON_THROW_ON_ERROR));
         $timeBucket = intdiv(Carbon::now()->getTimestamp(), self::ETAG_TIME_BUCKET_SECONDS);
 
         return sprintf('"%s-v%d-%s-%s-%s-t%d"', $serverId, $version, $locale, $endpoint, substr($paramsHash, 0, 8), $timeBucket);
@@ -133,6 +192,9 @@ class MarketCacheService
 
     /**
      * Recursively sort parameters by key for canonical cache keys.
+     *
+     * @param  array<string, mixed>  $params
+     * @return array<string, mixed>
      */
     private function canonicalizeParams(array $params): array
     {

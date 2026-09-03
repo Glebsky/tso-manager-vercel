@@ -25,20 +25,30 @@ return new class extends Migration
             $table->bigInteger('offer_id');
             $table->bigInteger('player_id');
             $table->string('sender_name');
-            $table->string('item_id', 100);
+            $table->string('item_kind', 16)->default('resource');
+            $table->string('item_id', 191);
             $table->string('item_name', 255);
+            $table->string('item_subject', 191)->nullable();
             $table->integer('amount');
-            $table->string('target_item_id', 100);
-            $table->string('target_item_name', 255);
-            $table->integer('target_amount');
-            $table->double('price');
+            $table->string('target_item_kind', 16)->nullable();
+            $table->string('target_item_id', 191)->nullable();
+            $table->string('target_item_name', 255)->nullable();
+            $table->string('target_item_subject', 191)->nullable();
+            $table->integer('target_amount')->nullable();
+            $table->double('price')->nullable();
             $table->integer('volume');
             $table->integer('lots_remaining');
+            $table->smallInteger('trade_type')->nullable();
+            $table->smallInteger('slot_type')->nullable();
+            $table->integer('total_lots')->nullable();
             $table->timestamp('created_at');
             $table->timestamp('collected_at');
 
             $table->unique(['server_id', 'offer_id']);
             $table->index('server_id');
+            $table->index(['server_id', 'item_kind', 'item_id']);
+            $table->index(['server_id', 'created_at'], 'idx_market_offers_server_created');
+            $table->index(['server_id', 'item_id', 'target_item_id', 'created_at'], 'idx_market_offers_server_pair_created');
         });
 
         Schema::create('market_history', function (Blueprint $table): void {
@@ -46,20 +56,29 @@ return new class extends Migration
             $table->string('server_id', 50)->default('ru');
             $table->bigInteger('offer_id');
             $table->bigInteger('player_id');
-            $table->string('item_id', 100);
+            $table->string('item_kind', 16)->default('resource');
+            $table->string('item_id', 191);
             $table->string('item_name', 255);
+            $table->string('item_subject', 191)->nullable();
             $table->integer('amount');
-            $table->string('target_item_id', 100);
-            $table->string('target_item_name', 255);
-            $table->integer('target_amount');
-            $table->double('price');
+            $table->string('target_item_kind', 16)->nullable();
+            $table->string('target_item_id', 191)->nullable();
+            $table->string('target_item_name', 255)->nullable();
+            $table->string('target_item_subject', 191)->nullable();
+            $table->integer('target_amount')->nullable();
+            $table->double('price')->nullable();
             $table->integer('volume');
+            $table->smallInteger('trade_type')->nullable();
+            $table->smallInteger('slot_type')->nullable();
+            $table->integer('total_lots')->nullable();
             $table->timestamp('collected_at');
 
             $table->index(['item_id', 'target_item_id']);
             $table->index('collected_at');
+            $table->index(['server_id', 'item_kind', 'collected_at']);
             $table->index(['server_id', 'item_id', 'target_item_id']);
             $table->index(['server_id', 'collected_at']);
+            $table->index(['server_id', 'item_id', 'target_item_id', 'collected_at'], 'idx_market_history_server_pair_collected');
         });
 
         Schema::create('market_server_connections', function (Blueprint $table): void {

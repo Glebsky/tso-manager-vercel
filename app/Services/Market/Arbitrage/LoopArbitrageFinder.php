@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Market\Arbitrage;
 
-use App\Models\MarketOffer;
 use App\Services\Market\Contracts\ArbitrageFinder;
 use App\Services\Market\Contracts\ResourceNameResolver;
 use App\Services\Market\MarketOfferQueryService;
@@ -23,7 +22,7 @@ final class LoopArbitrageFinder implements ArbitrageFinder
     /**
      * Maximum number of loops returned, best profit first.
      */
-    private const MAX_LOOPS = 20;
+    private const int MAX_LOOPS = 20;
 
     public function __construct(
         private readonly ResourceNameResolver $names,
@@ -36,19 +35,18 @@ final class LoopArbitrageFinder implements ArbitrageFinder
      */
     public function find(string $serverId): array
     {
-        $since = $this->offers->activeSince();
-        $offers = MarketOffer::query()
-            ->where('server_id', $serverId)
-            ->where(static function ($query) use ($since): void {
-                $query->where('created_at', '>=', $since)
-                    ->orWhere('collected_at', '>=', $since);
-            })
-            ->get();
-        $byPair = [];
+        $activeOffers = $this->offers->activeOffers($serverId);
 
-        foreach ($offers as $offer) {
+        // Pre-group by [target_item_id][item_id] => list of raw offer arrays (start resource -> end resource)
+        $byPair = [];
+        foreach ($activeOffers as $offer) {
             $from = $offer->target_item_id;
             $to = $offer->item_id;
+
+            if ($from === null || $offer->price === null || $offer->target_amount === null || $offer->target_amount <= 0 || $offer->amount <= 0) {
+                continue;
+            }
+
             $byPair[$from][$to][] = [
                 'offer_id' => $offer->offer_id,
                 'sender_name' => $offer->sender_name,
@@ -63,14 +61,9 @@ final class LoopArbitrageFinder implements ArbitrageFinder
         }
 
         $loops = [];
-        $resources = array_keys($byPair);
 
-        foreach ($resources as $A) {
-            if (! isset($byPair[$A])) {
-                continue;
-            }
-
-            foreach ($byPair[$A] as $B => $t1List) {
+        foreach ($byPair as $A => $pairsForA) {
+            foreach ($pairsForA as $B => $t1List) {
                 if ($B === $A) {
                     continue;
                 }
@@ -80,6 +73,11 @@ final class LoopArbitrageFinder implements ArbitrageFinder
                     $t2List = $byPair[$B][$A];
                     foreach ($t1List as $t1) {
                         foreach ($t2List as $t2) {
+                            // Theoretical rate product must exceed 1.0 for any positive arbitrage profit
+                            if (($t1['amount'] * $t2['amount']) <= ($t1['target_amount'] * $t2['target_amount'])) {
+                                continue;
+                            }
+
                             $bestProfit = -99999999;
                             $best_x = 0;
                             $best_y = 0;
@@ -90,9 +88,6 @@ final class LoopArbitrageFinder implements ArbitrageFinder
                             for ($x = 1; $x <= $maxX; $x++) {
                                 $gotB = $x * $t1['amount'];
                                 $neededForT2Lot = $t2['target_amount'];
-                                if ($neededForT2Lot <= 0) {
-                                    continue;
-                                }
                                 $y = (int) floor($gotB / $neededForT2Lot);
                                 if ($y > $maxY) {
                                     $y = $maxY;
@@ -180,7 +175,16 @@ final class LoopArbitrageFinder implements ArbitrageFinder
                             $t3List = $byPair[$C][$A];
                             foreach ($t1List as $t1) {
                                 foreach ($t2List as $t2) {
+                                    // Intermediate 2-step rate check
+                                    $r12Numerator = (float) $t1['amount'] * (float) $t2['amount'];
+                                    $r12Denominator = (float) $t1['target_amount'] * (float) $t2['target_amount'];
+
                                     foreach ($t3List as $t3) {
+                                        // Theoretical 3-step rate product must exceed 1.0
+                                        if (($r12Numerator * (float) $t3['amount']) <= ($r12Denominator * (float) $t3['target_amount'])) {
+                                            continue;
+                                        }
+
                                         $bestProfit = -99999999;
                                         $best_x = 0;
                                         $best_y = 0;
@@ -193,9 +197,6 @@ final class LoopArbitrageFinder implements ArbitrageFinder
                                         for ($x = 1; $x <= $maxX; $x++) {
                                             $gotB = $x * $t1['amount'];
                                             $neededForT2Lot = $t2['target_amount'];
-                                            if ($neededForT2Lot <= 0) {
-                                                continue;
-                                            }
                                             $y = (int) floor($gotB / $neededForT2Lot);
                                             if ($y > $maxY) {
                                                 $y = $maxY;
@@ -206,9 +207,6 @@ final class LoopArbitrageFinder implements ArbitrageFinder
 
                                             $gotC = $y * $t2['amount'];
                                             $neededForT3Lot = $t3['target_amount'];
-                                            if ($neededForT3Lot <= 0) {
-                                                continue;
-                                            }
                                             $z = (int) floor($gotC / $neededForT3Lot);
                                             if ($z > $maxZ) {
                                                 $z = $maxZ;
@@ -319,7 +317,7 @@ final class LoopArbitrageFinder implements ArbitrageFinder
             }
         }
 
-        usort($loops, fn ($a, $b) => $b['profit']['amount'] <=> $a['profit']['amount']);
+        usort($loops, static fn ($a, $b) => $b['profit']['amount'] <=> $a['profit']['amount']);
 
         return array_slice($loops, 0, self::MAX_LOOPS);
     }

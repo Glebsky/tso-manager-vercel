@@ -7,16 +7,16 @@ namespace App\Services\Market;
 use App\Models\Setting;
 
 /**
- * Reads the market synchronisation settings.
+ * Reads and writes the market synchronization settings.
  *
- * The public portal only reports when the next refresh is expected; it never
- * changes these values.
+ * The "is it custom? then read the other key" resolution used to be inlined in
+ * both getServers() and getBulk(); it now exists once.
  */
 final class MarketSettingsService
 {
-    private const KEY_INTERVAL = 'market_sync_interval';
+    private const string KEY_INTERVAL = 'market_sync_interval';
 
-    private const KEY_CUSTOM_MINUTES = 'market_custom_interval_minutes';
+    private const string KEY_CUSTOM_MINUTES = 'market_custom_interval_minutes';
 
     public function syncInterval(): string
     {
@@ -36,6 +36,12 @@ final class MarketSettingsService
         $interval = $this->syncInterval();
 
         return $interval === 'custom' ? $this->customIntervalMinutes() : (int) $interval;
+    }
+
+    public function update(string $syncInterval, ?int $customIntervalMinutes): void
+    {
+        Setting::set(self::KEY_INTERVAL, $syncInterval);
+        Setting::set(self::KEY_CUSTOM_MINUTES, $customIntervalMinutes);
     }
 
     private function defaultMinutes(): int

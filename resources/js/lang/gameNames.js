@@ -9,8 +9,21 @@
  *   resourceName('CollectibleAdamantium')      // "Adamantium Ore" / "\u0410\u0434\u0430\u043c\u0430\u043d\u0442\u043e\u0432\u0430\u044f \u0440\u0443\u0434\u0430"
  *   buildingName(b)                            // accepts a raw id or a building object
  */
-import { gameAnyLookup } from './index';
+import { gameAnyLookup, gameLookup } from './index';
 import { isBuffableBuildingName } from './buffTargets';
+
+const KIND_SECTION = { adventure: 'ADN', building: 'BUI', buff: 'RES', specialist: 'SPE' };
+
+export function parseTradeableId(rawId) {
+    const [head, ...rest] = String(rawId ?? '').split(':');
+    if (!KIND_SECTION[head]) return { kind: 'resource', base: rawId, subject: null };
+    if (head === 'buff') {
+        const base = rest[0] ?? '';
+        const subject = (rest[1] && rest[1].toLowerCase() !== base.toLowerCase()) ? rest[1] : null;
+        return { kind: 'buff', base, subject };
+    }
+    return { kind: head, base: rest[0] ?? '', subject: null };
+}
 
 /** Legacy prettifier: CamelCase/underscores -> "Title Case" words. */
 export function humanizeGameId(id) {
@@ -22,10 +35,11 @@ export function humanizeGameId(id) {
         .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase()));
 }
 
-/** Resource / buff / any catalog id -> localized name (catalog first). */
+/** Resource / buff / any catalog id -> localized name (RES section first, then catalog). */
 export function resourceName(id) {
     if (!id) return '';
-    return gameAnyLookup(String(id)) ?? humanizeGameId(id);
+    const str = String(id);
+    return gameLookup('RES', str) ?? gameAnyLookup(str) ?? humanizeGameId(str);
 }
 
 /**
@@ -41,10 +55,30 @@ export function marketItemName(name, id) {
     const rawId = (id === null || id === undefined) ? '' : String(id).trim();
     const rawName = (name === null || name === undefined) ? '' : String(name).trim();
     if (!rawId && !rawName) return '';
-    const translated = (rawId ? gameAnyLookup(rawId) : null)
-        ?? (rawName ? gameAnyLookup(rawName) : null);
+
+    const { kind, base, subject } = parseTradeableId(rawId);
+    const targetKey = subject ?? base;
+
+    let translated = null;
+    if (kind === 'buff') {
+        translated = gameLookup('RES', targetKey) || gameLookup('LAB', targetKey) || gameAnyLookup(targetKey);
+    } else if (kind === 'building') {
+        const baseId = buildingBaseId(targetKey);
+        translated = gameLookup('BUI', targetKey)
+            || (baseId ? gameLookup('BUI', baseId) : null)
+            || gameAnyLookup(targetKey);
+    } else if (kind !== 'resource' && KIND_SECTION[kind]) {
+        translated = gameLookup(KIND_SECTION[kind], targetKey) || gameAnyLookup(targetKey);
+    } else if (rawId) {
+        translated = gameLookup('RES', rawId) || gameAnyLookup(rawId);
+    }
+
+    if (!translated && rawName) {
+        translated = gameAnyLookup(rawName);
+    }
+
     if (translated) return translated;
-    return rawName || humanizeGameId(rawId);
+    return rawName || humanizeGameId(targetKey);
 }
 
 /** Strip level / decoration suffixes from a raw building id. */
@@ -60,7 +94,12 @@ export function buildingName(rawOrObject) {
         ? (rawOrObject.buildingName_string || rawOrObject.buildingName || '')
         : (rawOrObject || '');
     if (!raw) return '';
-    return gameAnyLookup(raw) ?? gameAnyLookup(buildingBaseId(raw)) ?? humanizeGameId(raw);
+    const baseId = buildingBaseId(raw);
+    return gameLookup('BUI', raw)
+        ?? (baseId ? gameLookup('BUI', baseId) : null)
+        ?? gameAnyLookup(raw)
+        ?? (baseId ? gameAnyLookup(baseId) : null)
+        ?? humanizeGameId(raw);
 }
 
 const BUILDING_MAP = {

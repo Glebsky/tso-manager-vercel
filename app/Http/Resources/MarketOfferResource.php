@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Enums\MarketItemKind;
 use App\Models\MarketOffer;
 use App\Services\Market\Contracts\ResourceNameResolver;
 use App\Services\Market\MarketOfferQueryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use LogicException;
 
 /**
  * Single serializer for a market offer.
- *
- * The identical 18-line array literal was previously repeated three times
- * inside the controller (analytics overview, bulk payload and arbitrage).
  *
  * @mixin MarketOffer
  */
@@ -47,7 +46,7 @@ class MarketOfferResource extends JsonResource
         $serialized = [];
 
         foreach ($offers as $offer) {
-            $serialized[] = (new self($offer))->using($names, $queries)->toArray(request());
+            $serialized[] = self::make($offer)->using($names, $queries)->toArray(request());
         }
 
         return $serialized;
@@ -58,21 +57,37 @@ class MarketOfferResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $names = $this->names ?? throw new \LogicException('MarketOfferResource requires using() to be called first.');
-        $offers = $this->offers ?? throw new \LogicException('MarketOfferResource requires using() to be called first.');
+        $names = $this->names ?? throw new LogicException('MarketOfferResource requires using() to be called first.');
+        $offers = $this->offers ?? throw new LogicException('MarketOfferResource requires using() to be called first.');
+
+        /** @var mixed $rawItemKind */
+        $rawItemKind = $this->resource->item_kind ?? null;
+        $itemKind = $rawItemKind instanceof MarketItemKind
+            ? $rawItemKind->value
+            : (is_string($rawItemKind) ? $rawItemKind : 'resource');
+
+        /** @var mixed $rawTargetItemKind */
+        $rawTargetItemKind = $this->resource->target_item_kind ?? null;
+        $targetItemKind = $rawTargetItemKind instanceof MarketItemKind
+            ? $rawTargetItemKind->value
+            : (is_string($rawTargetItemKind) ? $rawTargetItemKind : null);
 
         return [
             'id' => $this->id,
             'server_id' => $this->server_id,
             'offer_id' => $this->offer_id,
             'sender_name' => $this->sender_name,
+            'item_kind' => $itemKind,
             'item_id' => $this->item_id,
             'item_name' => $names->resolve($this->item_id, $this->item_name),
+            'item_subject' => $this->item_subject,
             'amount' => $this->amount,
+            'target_item_kind' => $targetItemKind,
             'target_item_id' => $this->target_item_id,
-            'target_item_name' => $names->resolve($this->target_item_id, $this->target_item_name),
+            'target_item_name' => $this->target_item_id !== null ? $names->resolve($this->target_item_id, $this->target_item_name) : null,
+            'target_item_subject' => $this->target_item_subject,
             'target_amount' => $this->target_amount,
-            'price' => round((float) $this->price, 4),
+            'price' => $this->price !== null ? round((float) $this->price, 4) : null,
             'volume' => $this->volume,
             'lots_remaining' => $this->lots_remaining,
             'created_at' => $this->created_at->toIso8601String(),
