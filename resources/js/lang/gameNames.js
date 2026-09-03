@@ -9,7 +9,7 @@
  *   resourceName('CollectibleAdamantium')      // "Adamantium Ore" / "\u0410\u0434\u0430\u043c\u0430\u043d\u0442\u043e\u0432\u0430\u044f \u0440\u0443\u0434\u0430"
  *   buildingName(b)                            // accepts a raw id or a building object
  */
-import { gameAnyLookup, gameLookup } from './index';
+import { t, gameAnyLookup, gameLookup } from './index';
 import { isBuffableBuildingName } from './buffTargets';
 
 const KIND_SECTION = { adventure: 'ADN', building: 'BUI', buff: 'RES', specialist: 'SPE' };
@@ -25,10 +25,11 @@ export function parseTradeableId(rawId) {
     return { kind: head, base: rest[0] ?? '', subject: null };
 }
 
-/** Legacy prettifier: CamelCase/underscores -> "Title Case" words. */
+/** Legacy prettifier: CamelCase/underscores -> "Title Case" words. Strips composite prefixes. */
 export function humanizeGameId(id) {
     if (!id) return '';
     return String(id)
+        .replace(/^(buff|adventure|building|specialist):/i, '')
         .replace(/(?<!^)(?=[A-Z])/g, ' ')
         .replace(/_/g, ' ')
         .trim()
@@ -42,43 +43,104 @@ export function resourceName(id) {
     return gameLookup('RES', str) ?? gameAnyLookup(str) ?? humanizeGameId(str);
 }
 
+/** Interpolate placeholders in game translation templates (e.g. {0}, {1,RES}). */
+function interpolateBuffTemplate(tpl, subject) {
+    const resName = subject ? (gameLookup('RES', subject) || gameAnyLookup(subject) || humanizeGameId(subject)) : '';
+    let out = tpl;
+    if (out.includes('{1,RES}') || out.includes('{1,') || out.includes('{0}')) {
+        out = out.replace(/\{1,RES(?::\w+)?\}/g, resName);
+        out = out.replace(/\{1,\w+\}/g, resName);
+        out = out.replace(/\{0\}/g, '');
+    }
+    return out.replace(/\s{2,}/g, ' ').replace(/:\s*$/, '').trim();
+}
+
+/**
+ * Resolve localized buff display name matching backend CompositeTradeableNameResolver.
+ * Handles parameterized refill/deposit templates, color schemes, and fallbacks.
+ */
+export function resolveBuffDisplayName(base, subject, fallback = '') {
+    if (base.startsWith('AddResource') || base.startsWith('FillDeposit') || base === 'HiredMilitary') {
+        const key = (base === 'FillDeposit' && !subject) ? 'FillDepositAny' : base;
+        const tpl = gameLookup('RES', key) || gameAnyLookup(key);
+        if (tpl) {
+            return interpolateBuffTemplate(tpl, subject);
+        }
+        const resName = subject ? (gameLookup('RES', subject) || gameAnyLookup(subject) || humanizeGameId(subject)) : '';
+        if (base.startsWith('AddResource')) return resName ? `${t('tasks.buff_add_resource') || 'Добавить ресурс'}: ${resName}` : (t('tasks.buff_add_resource') || 'Добавить ресурс');
+        if (base.startsWith('FillDeposit')) return resName ? `Пополнение залежи (${resName})` : 'Пополнение залежи';
+    }
+
+    if (base.startsWith('ChangeColorScheme') && subject) {
+        const colorName = gameLookup('RES', `${base}_${subject}`) || gameLookup('RES', `${base}:${subject}`) || gameAnyLookup(`${base}_${subject}`);
+        if (colorName) return colorName;
+    }
+
+    const translated = gameLookup('RES', base) || gameLookup('LAB', base) || gameAnyLookup(base);
+    if (translated) return translated;
+
+    if (fallback && !/^(buff|adventure|building|specialist):/i.test(fallback)) {
+        const fallbackTranslated = gameAnyLookup(fallback);
+        if (fallbackTranslated) return fallbackTranslated;
+        return fallback;
+    }
+
+    return subject ? `${humanizeGameId(base)} (${humanizeGameId(subject)})` : humanizeGameId(base);
+}
+
 /**
  * Market item -> localized display name. The SINGLE entry point for
  * translating market item names everywhere (admin + public market views).
  * Robust by design: tries the locale catalog by item id first, then by the
  * raw backend-provided name, and finally falls back to the backend name (or
- * a humanized id), so a missing translation can never blank out the UI.
+ * a humanized id), ensuring raw composite IDs (like buff:...) never leak into the UI.
  *
  *   marketItemName(good.item_name, good.item_id)
  */
 export function marketItemName(name, id) {
-    const rawId = (id === null || id === undefined) ? '' : String(id).trim();
-    const rawName = (name === null || name === undefined) ? '' : String(name).trim();
+    let rawId = (id === null || id === undefined) ? '' : String(id).trim();
+    let rawName = (name === null || name === undefined) ? '' : String(name).trim();
+
+    // Auto-detect composite ID passed as first argument
+    if (!rawId && /^(buff|adventure|building|specialist):/i.test(rawName)) {
+        rawId = rawName;
+        rawName = '';
+    }
+    if (rawName === rawId || /^(buff|adventure|building|specialist):/i.test(rawName)) {
+        rawName = '';
+    }
+
     if (!rawId && !rawName) return '';
 
-    const { kind, base, subject } = parseTradeableId(rawId);
+    const { kind, base, subject } = parseTradeableId(rawId || rawName);
     const targetKey = subject ?? base;
 
-    let translated = null;
     if (kind === 'buff') {
-        translated = gameLookup('RES', targetKey) || gameLookup('LAB', targetKey) || gameAnyLookup(targetKey);
-    } else if (kind === 'building') {
+        return resolveBuffDisplayName(base, subject, rawName);
+    }
+
+    if (kind === 'building') {
         const baseId = buildingBaseId(targetKey);
-        translated = gameLookup('BUI', targetKey)
+        const translated = gameLookup('BUI', targetKey)
             || (baseId ? gameLookup('BUI', baseId) : null)
-            || gameAnyLookup(targetKey);
-    } else if (kind !== 'resource' && KIND_SECTION[kind]) {
-        translated = gameLookup(KIND_SECTION[kind], targetKey) || gameAnyLookup(targetKey);
-    } else if (rawId) {
-        translated = gameLookup('RES', rawId) || gameAnyLookup(rawId);
+            || gameAnyLookup(targetKey)
+            || (baseId ? gameAnyLookup(baseId) : null);
+        if (translated) return translated;
+        if (rawName) return gameAnyLookup(rawName) || rawName;
+        return humanizeGameId(baseId || targetKey);
     }
 
-    if (!translated && rawName) {
-        translated = gameAnyLookup(rawName);
+    if (kind === 'adventure') {
+        const translated = gameLookup('ADN', targetKey) || gameAnyLookup(targetKey);
+        if (translated) return translated;
+        if (rawName) return gameAnyLookup(rawName) || rawName;
+        return humanizeGameId(targetKey);
     }
 
+    const translated = gameLookup('RES', targetKey) || gameAnyLookup(targetKey);
     if (translated) return translated;
-    return rawName || humanizeGameId(targetKey);
+    if (rawName) return gameAnyLookup(rawName) || rawName;
+    return humanizeGameId(targetKey);
 }
 
 /** Strip level / decoration suffixes from a raw building id. */
