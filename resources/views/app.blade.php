@@ -29,6 +29,7 @@
     <script>
         window.__APP_LOCALE__ = @json(app()->getLocale());
         window.__MARKET_CACHE_STRATEGY__ = @json(config('market.cache_strategy', 'bulk'));
+        window.__MARKET_COMBAT_SIMULATOR_URL__ = @json(config('market.combat_simulator_url'));
     </script>
     @vite(['resources/js/app.js'])
 </head>
