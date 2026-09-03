@@ -6,16 +6,8 @@
         }
     },
     "env": {
-        "APP_ENV": "production",
-        "APP_DEBUG": "true",
-        "DB_CONNECTION": "pgsql",
-        "DB_HOST": "aws-0-eu-west-1.pooler.supabase.com",
-        "DB_PORT": "5432",
         "CACHE_STORE": "array",
         "CACHE_DRIVER": "array",
-        "DB_DATABASE": "postgres",
-        "DB_USERNAME": "postgres.sibqukjvhwlzxgzhfxil",
-        "DB_PASSWORD": "wonettehartin148_tx",
         "LOG_CHANNEL": "stderr",
         "SESSION_DRIVER": "cookie",
         "APP_STORAGE": "/tmp/storage",
