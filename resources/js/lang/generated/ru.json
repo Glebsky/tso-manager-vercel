@@ -6229,7 +6229,90 @@
             "Xmas2019General": "Стойкий генерал"
         }
     },
-    "tasks": [],
+    "tasks": {
+        "build_mine": {
+            "built": "Шахта: построена :name (грид :grid)",
+            "game_error": "Шахта: ошибка постройки (:message)",
+            "rejected": {
+                "build_queue_full": "Шахта: пропуск, нет свободных слотов очереди стройки",
+                "deposit_empty": "Шахта: пропуск, залежь на гриде :grid истощена",
+                "deposit_not_accessible": "Шахта: пропуск, залежь на гриде :grid недоступна",
+                "grid_occupied": "Шахта: пропуск, грид :grid занят зданием",
+                "no_deposit_at_grid": "Шахта: пропуск, залежь на гриде :grid не найдена",
+                "unknown_deposit_type": "Шахта: пропуск, тип залежи :name не поддерживается"
+            },
+            "unknown_outcome": "Шахта: исход постройки на гриде :grid неизвестен, проверьте вручную"
+        },
+        "building_collect": {
+            "collected": "Здание: собрано :name (grid :grid)",
+            "gift_received": "Здание: подарок получен :name (grid :grid)",
+            "not_found": "Здание: на сетке :grid нечего собирать",
+            "nothing_to_collect": "Здание: награда пока недоступна :name"
+        },
+        "error": {
+            "account_not_found": "Аккаунт для задачи #:id не найден.",
+            "buff_not_found": "Указанный бафф не найден в инвентаре звездного меню.",
+            "building_not_clickable": "Здание :name нельзя собрать кликом",
+            "friend_building_not_found": "Шаг не выполнен: здание Grid #:grid не найдено в зоне :friendName",
+            "friend_building_not_found_grid": "Здание с сеткой #:grid не найдено в зоне друга.",
+            "friend_not_found": "Шаг пропущен: игрок больше не находится в списке друзей",
+            "friend_not_in_list": "Игрок отсутствует в вашем списке друзей.",
+            "friend_zone_failed": "Не удалось загрузить зону друга (код ошибки сервера :err: :errMsg)",
+            "friend_zone_not_cached": "Зона друга не загружена или истек срок кеша. Пожалуйста, обновите ее в интерфейсе.",
+            "insufficient_buffs": "Недостаточно баффов в звездном меню (доступно: :available, требуется: :required).",
+            "invalid_friend_id": "Неверный ID друга.",
+            "pickups_unavailable": "Ответ зоны не содержит список коллекций. Обновите storage/app/parse_zone.py, чтобы он возвращал ключ pickups.",
+            "server_error": "Код ошибки сервера :errorCode: :errorMsg",
+            "task_inactive": "Задача #:id неактивна или приостановлена.",
+            "token_mismatch": "Несоответствие токена выполнения для задачи #:id. Ожидался: :expected, найден: :found",
+            "unknown_action_type": "Неизвестный тип действия: :taskType"
+        },
+        "pickups": {
+            "none_available": "Коллекции: собирать нечего",
+            "skipped": "пропущено :skipped (:details)",
+            "summary": "Коллекции: собрано :collected/:total"
+        },
+        "produce_buff": {
+            "game_error": "Производство: ошибка (:message)",
+            "queued": "Производство: поставлено в очередь :amount x :recipe (грид :grid)",
+            "rejected": {
+                "amount_exceeds_recipe_limit": "Производство: пропуск, указанное количество превышает лимит рецепта",
+                "building_not_found": "Производство: пропуск, здание на гриде :grid не найдено",
+                "building_upgrading": "Производство: пропуск, здание на гриде :grid сейчас улучшается",
+                "insufficient_resources": "Производство: пропуск, недостаточно ресурсов для создания :recipe",
+                "not_a_producer": "Производство: пропуск, здание на гриде :grid не производит предметы",
+                "production_type_mismatch": "Производство: пропуск, тип производства здания не совпадает с заказом",
+                "production_type_unsupported": "Производство: пропуск, тип производства здания ещё не поддерживается",
+                "queue_data_unavailable": "Производство: пропуск, данные очереди недоступны в снапшоте зоны",
+                "queue_full": "Производство: пропуск, очередь производства заполнена",
+                "recipe_level_locked": "Производство: пропуск, рецепт :recipe требует более высокого уровня здания",
+                "recipe_requires_inactive_event": "Производство: пропуск, рецепт :recipe требует неактивного игрового события",
+                "recipe_unknown": "Производство: пропуск, рецепт :recipe неизвестен для этого здания",
+                "stacks_exceeds_recipe_limit": "Производство: пропуск, указанное количество стеков превышает лимит рецепта"
+            },
+            "unknown_outcome": "Производство: исход очереди на гриде :grid (:recipe) неизвестен, проверьте вручную"
+        },
+        "step": {
+            "error": "Шаг :step [:type]: ОШИБКА - :error",
+            "error_short": "Шаг :step: ОШИБКА - :error",
+            "ok": "Шаг :step [:type]: OK (:bytes байт)",
+            "ok_short": "Шаг :step: OK",
+            "skipped": "Шаг :step [:type]: пропущен (уже выполнен)"
+        },
+        "upgrade_mine": {
+            "game_error": "Шахта: ошибка улучшения (:message)",
+            "rejected": {
+                "build_queue_full": "Шахта: пропуск, нет свободных слотов очереди стройки",
+                "max_level_reached": "Шахта: пропуск, :name уже уровня :level",
+                "no_building_at_grid": "Шахта: пропуск, здание на гриде :grid не найдено",
+                "not_a_mine": "Шахта: пропуск, здание :name не является шахтой",
+                "production_inactive": "Шахта: пропуск, производство на гриде :grid остановлено",
+                "upgrade_already_in_progress": "Шахта: пропуск, улучшение на гриде :grid уже идёт"
+            },
+            "unknown_outcome": "Шахта: исход улучшения на гриде :grid неизвестен, проверьте вручную",
+            "upgraded": "Шахта: улучшение :name до уровня :level (грид :grid)"
+        }
+    },
     "ui": {
         "account.action_failed": "Действие не выполнено.",
         "account.bb_url_label": "BB URL (Сервер авторизации)",
@@ -6721,6 +6804,9 @@
         "settings.clear_logs": "Очистить системные логи",
         "settings.clear_logs_hint": "Удаляет все записи логов из базы данных.",
         "settings.clearing": "Очистка…",
+        "settings.combat_simulator_url": "URL боевого симулятора",
+        "settings.combat_simulator_url_hint": "Ссылка на внешний продвинутый боевой симулятор в шапке публичного маркета (если не указана, используется значение по умолчанию из .env)",
+        "settings.combat_simulator_url_placeholder": "https://settlersonlinesimulator.com",
         "settings.confirm_clear_logs": "Все логи будут удалены безвозвратно. Продолжить?",
         "settings.confirm_pause_tasks": "Все активные задачи будут приостановлены. Продолжить?",
         "settings.danger_zone": "Опасная зона",
@@ -6827,6 +6913,8 @@
         "tasks.deposit_short.saltpeter": "Селитра",
         "tasks.deposit_short.stone": "Камень",
         "tasks.deposit_short.titanium_ore": "Титановая руда",
+        "tasks.drag_to_reorder": "Перетащите для изменения порядка",
+        "tasks.duplicate_task": "Дублировать задачу",
         "tasks.edit_short": "Ред.",
         "tasks.edit_task": "Редактировать задачу",
         "tasks.editing_hint": "Вы редактируете существующую задачу. Добавляйте/удаляйте действия и нажмите «Сохранить изменения».",
@@ -6997,6 +7085,8 @@
         "tasks.toast.delete_failed": "Не удалось удалить задачу.",
         "tasks.toast.friend_no_id": "У этого друга отсутствует ID. Пожалуйста, выполните синхронизацию (Sync) в разделе Accounts.",
         "tasks.toast.load_failed": "Не удалось загрузить данные планировщика.",
+        "tasks.toast.order_updated": "Порядок задач обновлен.",
+        "tasks.toast.reorder_failed": "Не удалось обновить порядок задач.",
         "tasks.toast.run_error": "Ошибка выполнения",
         "tasks.toast.run_failed": "Не удалось выполнить задачу.",
         "tasks.toast.run_success": "Задача выполнена успешно",
@@ -7019,6 +7109,7 @@
         "tasks.toast.status_load_failed": "Не удалось загрузить статус задачи.",
         "tasks.toast.task_activated": "Задача активирована",
         "tasks.toast.task_deleted": "Задача удалена.",
+        "tasks.toast.task_duplicated": "Копия задачи создана.",
         "tasks.toast.task_paused": "Задача приостановлена",
         "tasks.toast.task_updated": "Задача успешно обновлена.",
         "tasks.toast.tasks_paused": "Все задачи приостановлены.",

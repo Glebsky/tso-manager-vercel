@@ -6229,7 +6229,90 @@
             "Xmas2019General": "Steadfast General"
         }
     },
-    "tasks": [],
+    "tasks": {
+        "build_mine": {
+            "built": "Mine: built :name (grid :grid)",
+            "game_error": "Mine: build failed (:message)",
+            "rejected": {
+                "build_queue_full": "Mine: skipped, build queue is full",
+                "deposit_empty": "Mine: skipped, deposit at grid :grid is depleted",
+                "deposit_not_accessible": "Mine: skipped, deposit at grid :grid is not accessible",
+                "grid_occupied": "Mine: skipped, grid :grid is occupied by a building",
+                "no_deposit_at_grid": "Mine: skipped, no deposit found at grid :grid",
+                "unknown_deposit_type": "Mine: skipped, deposit type :name is not supported"
+            },
+            "unknown_outcome": "Mine: build outcome unknown on grid :grid, check manually"
+        },
+        "building_collect": {
+            "collected": "Building: collected :name (grid :grid)",
+            "gift_received": "Building: gift received :name (grid :grid)",
+            "not_found": "Building: nothing to collect on grid :grid",
+            "nothing_to_collect": "Building: reward not available yet :name"
+        },
+        "error": {
+            "account_not_found": "Account for task #:id not found.",
+            "buff_not_found": "Specified buff not found in star menu inventory.",
+            "building_not_clickable": "Building :name is not clickable for collection",
+            "friend_building_not_found": "Step failed: building Grid #:grid not found in zone :friendName",
+            "friend_building_not_found_grid": "Building with Grid #:grid not found in friend zone.",
+            "friend_not_found": "Step skipped: player is no longer in friends list",
+            "friend_not_in_list": "Player is not in your friends list.",
+            "friend_zone_failed": "Failed to load friend's zone (server error code :err: :errMsg)",
+            "friend_zone_not_cached": "Friend zone is not loaded or cache has expired. Please refresh it in the interface.",
+            "insufficient_buffs": "Insufficient buffs in star menu (available: :available, required: :required).",
+            "invalid_friend_id": "Invalid friend ID.",
+            "pickups_unavailable": "Zone response contains no collectibles list. Patch storage/app/parse_zone.py so it returns the pickups key.",
+            "server_error": "Server error code :errorCode: :errorMsg",
+            "task_inactive": "Task #:id is inactive or paused.",
+            "token_mismatch": "Execution token mismatch for task #:id. Expected: :expected, found: :found",
+            "unknown_action_type": "Unknown action type: :taskType"
+        },
+        "pickups": {
+            "none_available": "Collectibles: nothing to collect",
+            "skipped": ":skipped skipped (:details)",
+            "summary": "Collectibles: :collected/:total collected"
+        },
+        "produce_buff": {
+            "game_error": "Production: failed (:message)",
+            "queued": "Production: queued :amount x :recipe (grid :grid)",
+            "rejected": {
+                "amount_exceeds_recipe_limit": "Production: skipped, requested amount exceeds recipe limit",
+                "building_not_found": "Production: skipped, building not found at grid :grid",
+                "building_upgrading": "Production: skipped, building at grid :grid is currently upgrading",
+                "insufficient_resources": "Production: skipped, insufficient resources for :recipe",
+                "not_a_producer": "Production: skipped, building at grid :grid cannot produce items",
+                "production_type_mismatch": "Production: skipped, building production type does not match order",
+                "production_type_unsupported": "Production: skipped, production type is not supported yet",
+                "queue_data_unavailable": "Production: skipped, production queue data unavailable in zone snapshot",
+                "queue_full": "Production: skipped, production queue is full",
+                "recipe_level_locked": "Production: skipped, recipe :recipe requires higher building level",
+                "recipe_requires_inactive_event": "Production: skipped, recipe :recipe requires an inactive game event",
+                "recipe_unknown": "Production: skipped, recipe :recipe is unknown for this building",
+                "stacks_exceeds_recipe_limit": "Production: skipped, requested stacks count exceeds recipe limit"
+            },
+            "unknown_outcome": "Production: queue outcome unknown on grid :grid (:recipe), check manually"
+        },
+        "step": {
+            "error": "Step :step [:type]: ERROR - :error",
+            "error_short": "Step :step: ERROR - :error",
+            "ok": "Step :step [:type]: OK (:bytes bytes)",
+            "ok_short": "Step :step: OK",
+            "skipped": "Step :step [:type]: SKIPPED (already executed)"
+        },
+        "upgrade_mine": {
+            "game_error": "Mine: upgrade failed (:message)",
+            "rejected": {
+                "build_queue_full": "Mine: skipped, build queue is full",
+                "max_level_reached": "Mine: skipped, :name is already at max level :level",
+                "no_building_at_grid": "Mine: skipped, no building found at grid :grid",
+                "not_a_mine": "Mine: skipped, building :name is not a valid mine",
+                "production_inactive": "Mine: skipped, production is inactive at grid :grid",
+                "upgrade_already_in_progress": "Mine: skipped, upgrade is already in progress at grid :grid"
+            },
+            "unknown_outcome": "Mine: upgrade outcome unknown on grid :grid, check manually",
+            "upgraded": "Mine: upgraded :name to level :level (grid :grid)"
+        }
+    },
     "ui": {
         "account.action_failed": "Action failed.",
         "account.bb_url_label": "BB URL (authorization server)",
@@ -6721,6 +6804,9 @@
         "settings.clear_logs": "Clear System Logs",
         "settings.clear_logs_hint": "This deletes all logged events from the database.",
         "settings.clearing": "Clearing…",
+        "settings.combat_simulator_url": "Combat Simulator URL",
+        "settings.combat_simulator_url_hint": "Link to the external advanced combat simulator in the public market header (falls back to .env if not specified)",
+        "settings.combat_simulator_url_placeholder": "https://settlersonlinesimulator.com",
         "settings.confirm_clear_logs": "This deletes all database logs permanently. Proceed?",
         "settings.confirm_pause_tasks": "This pauses all active tasks. Proceed?",
         "settings.danger_zone": "Danger Zone",
@@ -6827,6 +6913,8 @@
         "tasks.deposit_short.saltpeter": "Saltpeter",
         "tasks.deposit_short.stone": "Stone",
         "tasks.deposit_short.titanium_ore": "Titanium Ore",
+        "tasks.drag_to_reorder": "Drag to reorder",
+        "tasks.duplicate_task": "Duplicate task",
         "tasks.edit_short": "Edit",
         "tasks.edit_task": "Edit task",
         "tasks.editing_hint": "You are editing an existing task. Add or remove actions and press “Save changes”.",
@@ -6997,6 +7085,8 @@
         "tasks.toast.delete_failed": "Failed to delete the task.",
         "tasks.toast.friend_no_id": "This friend has no ID. Please run a sync (Sync) in the Accounts section.",
         "tasks.toast.load_failed": "Failed to load planner data.",
+        "tasks.toast.order_updated": "Task order updated.",
+        "tasks.toast.reorder_failed": "Failed to update task order.",
         "tasks.toast.run_error": "Execution error",
         "tasks.toast.run_failed": "Failed to run the task.",
         "tasks.toast.run_success": "Task completed successfully",
@@ -7019,6 +7109,7 @@
         "tasks.toast.status_load_failed": "Failed to load task status.",
         "tasks.toast.task_activated": "Task activated",
         "tasks.toast.task_deleted": "Task deleted.",
+        "tasks.toast.task_duplicated": "Task duplicated.",
         "tasks.toast.task_paused": "Task paused",
         "tasks.toast.task_updated": "Task updated successfully.",
         "tasks.toast.tasks_paused": "All tasks paused.",
