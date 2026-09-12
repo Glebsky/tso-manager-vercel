@@ -1,2 +1,9 @@
 User-agent: *
 Allow: /
+
+# Disallow internal API endpoints and health checks from indexing
+Disallow: /api/
+Disallow: /healthz
+
+# XML Sitemap
+Sitemap: https://tso-market.vercel.app/sitemap.xml

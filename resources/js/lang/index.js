@@ -23,7 +23,13 @@ const localeLoaders = {
 };
 
 function detectLocale() {
-    const raw = (typeof localStorage !== 'undefined' && localStorage.getItem('app_locale'))
+    let urlLang = null;
+    if (typeof window !== 'undefined' && window.location && window.location.search) {
+        urlLang = new URLSearchParams(window.location.search).get('lang');
+    }
+
+    const raw = urlLang
+        || (typeof localStorage !== 'undefined' && localStorage.getItem('app_locale'))
         || (typeof window !== 'undefined' && window.__APP_LOCALE__)
         || (typeof document !== 'undefined' && document.documentElement.lang)
         || FALLBACK_LOCALE;
