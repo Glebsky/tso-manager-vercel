@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
 
-# Disallow internal API endpoints and health checks from indexing
-Disallow: /api/
+# Disallow internal health checks
 Disallow: /healthz
 
 # XML Sitemap
